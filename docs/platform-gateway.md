@@ -95,11 +95,13 @@ Entra-Objekte (Tenant `6e069cd6-8fb1-4eb7-a7c6-8d6a50b603f3`, „TBIT Training�
 
 - ✅ Erledigt: App-Roles + Assignment required (Manifest), Zuweisungen (3 User `Api.User` im Portal; SP `Api.Service` per Graph), Client-Secret in fnox (`TBI_SP_EXAM_AI_103_API_CLIENT_SECRET`), Client-ID in beide `products/*/policy.xml` eingesetzt.
 - Graph-Lektion: Lesen geht vom Normal-User-Profil (`AZURE_CONFIG_DIR=~/.azure-maik`); **Writes brauchen das Admin-Profil** (`~/.azure-adm`) — der `az rest`-POST auf `appRoleAssignedTo` lief dort, weil az CLI die CAE-Claims-Challenge automatisch nachlöst. Ohne Admin-Rolle: `Authorization_RequestDenied`.
+- User-Pfad: Delegated Scope `user_impersonation` an die App (Graph v1.0-Property heißt **`api.oauth2PermissionScopes`**, nicht `oauth2Permissions`!) + einmaliger interaktiver Consent (`az login --scope api://e1317cae-…/user_impersonation`). Grant-POST auf `oauth2PermissionGrants` scheiterte an CLI-Token-Rechten; Admin-Consent-URL landete nicht — User-Consent (Scope `type: User`) reicht.
 
 Token-Bezug & Aufruf:
 
 ```sh
-# User (interaktiv, az CLI):
+# User (einmalig interaktiv mit Consent, danach silent):
+az login --tenant 6e069cd6-8fb1-4eb7-a7c6-8d6a50b603f3 --scope 'api://<CLIENT-ID>/user_impersonation'
 TOKEN=$(az account get-access-token --resource api://<CLIENT-ID> --query accessToken -o tsv)
 
 # SP (client_credentials):
@@ -137,7 +139,7 @@ curl "https://api.maikteske.dev/fabric" \
 
 Nach Aktivierung der validate-jwt-Policies braucht jeder Aufruf zusätzlich `Authorization: Bearer <JWT>` (siehe Entra-ID-Auth oben).
 
-JWT-Smoke-Matrix (Stand: SP-Pfad verifiziert ✅): Key ohne JWT → **401** ✅; SP-JWT (`roles: Api.Service`, aud `e1317cae-…`) + Key → `/foundry` **200** ✅, `/fabric` **200** ✅. User-JWT-Pfad (az CLI) noch offen: Azure-CLI-First-Party-App kann unsere API nicht anfordern (AADSTS650057 — API hat nur App-Roles, keine delegated Scopes). Fix später: oauth2Permission-Scope an der API + Admin-Consent.
+JWT-Smoke-Matrix (Stand: alle Pfade verifiziert ✅): Key ohne JWT → **401** ✅; SP-JWT (`roles: Api.Service`) + Key → `/foundry` **200** ✅, `/fabric` **200** ✅; User-JWT (`roles: Api.User`, `scp: user_impersonation`) + Key → `/foundry` **200** ✅, `/fabric` **200** ✅.
 
 APIM-Lektion: Operations mit `method: "*"` werden von StandardV2 nicht geroutet —
 pro Methode eigene Operations (POST/GET × `/{*path}` und `/`) anlegen (siehe apim-artifacts/apis/*/operations).
