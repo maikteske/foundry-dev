@@ -56,6 +56,29 @@ resource publicIp 'Microsoft.Network/publicIPAddresses@2024-05-01' = {
   }
 }
 
+// WAF-Policy als eigene Ressource (inline webApplicationFirewallConfiguration
+// am Gateway ist retired: ApplicationGatewayWafConfigurationDeprecated)
+resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies@2024-05-01' = {
+  name: '${appGwName}-wafpolicy'
+  location: resourceGroup().location
+  properties: {
+    policySettings: {
+      state: 'Enabled'
+      mode: 'Prevention'
+      requestBodyCheck: true
+      maxRequestBodySizeInKb: 128
+    }
+    managedRules: {
+      managedRuleSets: [
+        {
+          ruleSetType: 'OWASP'
+          ruleSetVersion: '3.2'
+        }
+      ]
+    }
+  }
+}
+
 resource appGw 'Microsoft.Network/applicationGateways@2024-05-01' = {
   name: appGwName
   location: resourceGroup().location
@@ -185,13 +208,8 @@ resource appGw 'Microsoft.Network/applicationGateways@2024-05-01' = {
         }
       }
     ]
-    webApplicationFirewallConfiguration: {
-      enabled: true
-      firewallMode: 'Prevention'
-      ruleSetType: 'OWASP'
-      ruleSetVersion: '3.2'
-      requestBodyCheck: true
-      maxRequestBodySizeInKb: 128
+    firewallPolicy: {
+      id: wafPolicy.id
     }
   }
 }
