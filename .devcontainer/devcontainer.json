@@ -4,16 +4,22 @@
   "features": {
     "ghcr.io/devcontainers/features/python:1": {},
     "ghcr.io/devcontainers/features/azure-cli:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/mise:1": {}
   },
-  "postStartCommand": "grep -qs azure-sp.env /root/.bashrc || printf '\\n# Foundry SP-Bootstrap (fnox/KV)\\n. /workspaces/.secrets/azure-sp.env\\nalias fnox=/workspaces/bin/fnox\\n' >> /root/.bashrc; if [ -f /workspaces/.secrets/azure-sp.env ] && ! az account show > /dev/null 2>&1; then . /workspaces/.secrets/azure-sp.env && az login --service-principal -u \"$AZURE_CLIENT_ID\" -p \"$AZURE_CLIENT_SECRET\" -t \"$AZURE_TENANT_ID\" > /dev/null 2>&1 || true; fi",
+  "containerEnv": {
+    "MISE_DATA_DIR": "/workspaces/.mise",
+    "FNOX_STATE_DIR": "/workspaces/.fnox-state"
+  },
+  "postStartCommand": "if ! grep -qs 'MISE_FNOX_BOOTSTRAP' /root/.bashrc; then printf '\\n# MISE_FNOX_BOOTSTRAP (mise+fnox)\\nexport MISE_DATA_DIR=/workspaces/.mise\\nexport FNOX_STATE_DIR=/workspaces/.fnox-state\\nmise trust /workspaces/foundry-dev >/dev/null 2>&1 || true\neval \"$(mise activate bash)\" 2>/dev/null || true\neval \"$(fnox activate bash)\" 2>/dev/null || true\n' >> /root/.bashrc; fi; (cd /workspaces/foundry-dev && MISE_DATA_DIR=/workspaces/.mise mise install >/dev/null 2>&1) || true; if [ -f /workspaces/.secrets/azure-sp.env ] && ! az account show > /dev/null 2>&1; then . /workspaces/.secrets/azure-sp.env && az login --service-principal -u \"$AZURE_CLIENT_ID\" -p \"$AZURE_CLIENT_SECRET\" -t \"$AZURE_TENANT_ID\" > /dev/null 2>&1 || true; fi",
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-windows-ai-studio.windows-ai-studio",
         "GitHub.copilot",
         "GitHub.copilot-chat",
-        "GitHub.vscode-pull-request-github"
+        "GitHub.vscode-pull-request-github",
+        "hverlin.mise-vscode"
       ]
     }
   }
