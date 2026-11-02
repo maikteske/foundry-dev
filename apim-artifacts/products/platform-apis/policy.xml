@@ -1,0 +1,27 @@
+<policies>
+    <inbound>
+        <base />
+        <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Unauthorized. Entra ID bearer token with role 'Api.User' or 'Api.Service' for audience foundry-dev-api is required." require-scheme="Bearer">
+            <openid-config url="https://login.microsoftonline.com/6e069cd6-8fb1-4eb7-a7c6-8d6a50b603f3/v2.0/.well-known/openid-configuration" />
+            <audiences>
+                <audience>api://e1317cae-4541-4666-8b51-57683fa38568</audience>
+                <audience>e1317cae-4541-4666-8b51-57683fa38568</audience>
+            </audiences>
+            <required-claims>
+                <claim name="roles" match="any">
+                    <value>Api.User</value>
+                    <value>Api.Service</value>
+                </claim>
+            </required-claims>
+        </validate-jwt>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

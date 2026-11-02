@@ -1,0 +1,19 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/products/internal-apis",
+  "type": "Microsoft.ApiManagement/service/products",
+  "name": "internal-apis",
+  "properties": {
+    "displayName": "Internal APIs",
+    "description": "Internal-only APIs for web apps / function apps (Entra SP token with role 'Api.Service' + subscription key)",
+    "terms": null,
+    "subscriptionRequired": true,
+    "approvalRequired": false,
+    "subscriptionsLimit": null,
+    "state": "published",
+    "groups": [],
+    "authenticationType": [
+      "subscription-key"
+    ],
+    "application": null
+  }
+}

@@ -78,6 +78,43 @@ Achtung: Der Pfad endet auf **`/graphql`**, nicht `/execute` — `/execute` lief
 
 Policies je API: `authentication-managed-identity` (resource `https://api.fabric.microsoft.com` bzw. Foundry) + `graphql-max-depth`/`graphql-max-complexity`.
 
+## Entra-ID-Auth (JWT via Product-Policy validate-jwt)
+
+Caller-Auth läuft über Entra App-Roles (Claim `roles`) + weiterhin Subscription-Key:
+
+| Product | Erforderliche Rolle | Wer |
+|---|---|---|
+| `platform-apis` (foundry-models, fabric-graphql) | `Api.User` **oder** `Api.Service` | 3 User + Service Principal |
+| `internal-apis` (Skeleton für Web-/Function-Apps) | nur `Api.Service` | Apps only, keine interaktiven User |
+
+Entra-Objekte (Tenant `6e069cd6-8fb1-4eb7-a7c6-8d6a50b603f3`, „TBIT Training“):
+
+- App-Registration **`foundry-dev-api`** (die geschützte API): Audience `api://<clientId>`, `accessTokenAcceptedVersion: 2`, **Assignment required**, App-Roles `Api.User` (User) und `Api.Service` (Applications).
+- App-Registration **`foundry-dev-api-client`** (SP mit Client-Secret für Web-/Function-App): App-Role-Zuweisung `Api.Service` auf `foundry-dev-api`.
+- User-Zuweisungen `Api.User`: ron.strassburg@, thilo.barth@, maik.teske@teambusinessit.de.
+
+- ✅ Erledigt: App-Roles + Assignment required (Manifest), Zuweisungen (3 User `Api.User` im Portal; SP `Api.Service` per Graph), Client-Secret in fnox (`TBI_SP_EXAM_AI_103_API_CLIENT_SECRET`), Client-ID in beide `products/*/policy.xml` eingesetzt.
+- Graph-Lektion: Lesen geht vom Normal-User-Profil (`AZURE_CONFIG_DIR=~/.azure-maik`); **Writes brauchen das Admin-Profil** (`~/.azure-adm`) — der `az rest`-POST auf `appRoleAssignedTo` lief dort, weil az CLI die CAE-Claims-Challenge automatisch nachlöst. Ohne Admin-Rolle: `Authorization_RequestDenied`.
+
+Token-Bezug & Aufruf:
+
+```sh
+# User (interaktiv, az CLI):
+TOKEN=$(az account get-access-token --resource api://<CLIENT-ID> --query accessToken -o tsv)
+
+# SP (client_credentials):
+curl -s https://login.microsoftonline.com/6e069cd6-8fb1-4eb7-a7c6-8d6a50b603f3/oauth2/v2.0/token \
+  -d grant_type=client_credentials -d client_id=<SP-CLIENT-ID> -d client_secret=<SECRET> \
+  -d 'scope=api://<API-CLIENT-ID>/.default' | jq -r .access_token
+
+curl https://api.maikteske.dev/fabric \
+  -H "Ocp-Apim-Subscription-Key: $KEY" -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"query { entities_gold_layers(first: 10) { items { id } } }"}'
+```
+
+Fehlerbild ohne/ungültigem Token: **401** (validate-jwt, Product-Policy).
+
 ## Smoke-Tests (Stand: beide APIs verifiziert ✅)
 
 PublicGateway: `api.maikteske.dev` (Cloudflare CNAME, DNS-only, LE-Zertifikat aus KV `appgw-tls`).
@@ -97,6 +134,10 @@ curl "https://api.maikteske.dev/fabric" \
   -H "Ocp-Apim-Subscription-Key: $KEY" -H "Content-Type: application/json" \
   -d '{"query":"query { entities_gold_layers(first: 10) { items { id } } }"}'
 ```
+
+Nach Aktivierung der validate-jwt-Policies braucht jeder Aufruf zusätzlich `Authorization: Bearer <JWT>` (siehe Entra-ID-Auth oben).
+
+JWT-Smoke-Matrix (Stand: SP-Pfad verifiziert ✅): Key ohne JWT → **401** ✅; SP-JWT (`roles: Api.Service`, aud `e1317cae-…`) + Key → `/foundry` **200** ✅, `/fabric` **200** ✅. User-JWT-Pfad (az CLI) noch offen: Azure-CLI-First-Party-App kann unsere API nicht anfordern (AADSTS650057 — API hat nur App-Roles, keine delegated Scopes). Fix später: oauth2Permission-Scope an der API + Admin-Consent.
 
 APIM-Lektion: Operations mit `method: "*"` werden von StandardV2 nicht geroutet —
 pro Methode eigene Operations (POST/GET × `/{*path}` und `/`) anlegen (siehe apim-artifacts/apis/*/operations).
