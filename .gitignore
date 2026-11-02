@@ -1,2 +1,5 @@
 .DS_Store
 *.env
+# LE/acme.sh-Workspace + lokale PFX-Dateien (Zertifikate liegen im Key Vault)
+.acme/
+certs/

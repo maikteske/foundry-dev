@@ -22,4 +22,10 @@ Test-Repo für einen Coder-Workspace auf Basis des Templates `kubernetes-envbuil
 - Modell deployen: Toolkit → Model Catalog → gewünschtes Modell → Deploy
 - Model-Deployments per IaC: `mise run deploy:whatif` (Vorschau) bzw. `mise run deploy` — siehe `infra/main.bicep`
 
+## Platform-API-Gateway (Bicep `infra/platform.bicep`)
+
+Privates API-Gateway (APIM StandardV2 + AppGW v2/WAF + Private Endpoint) vor AI Foundry und Fabric GraphQL, public unter `api.maikteske.dev` (LE-Zertifikat via DNS-01 aus Key Vault). Alle Tasks, Architektur und Troubleshooting: **`docs/platform-gateway.md`**.
+
+Deploy-Reihenfolge: `platform:bootstrap` → `cert:issue` → `cert:import` → `platform:deploy` → `platform:lockdown` (Admin-Konto via `AZURE_CONFIG_DIR=~/.azure-adm`, CF-Token via fnox).
+
 Nur `/workspaces` ist persistent — alles außerhalb wird beim Neustart aus der Devcontainer-Spezifikation neu aufgebaut.

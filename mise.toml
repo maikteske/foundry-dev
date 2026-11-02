@@ -7,11 +7,22 @@ experimental = true
 [tools]
 # fnox >= 1.43 wird von mises [secrets.fnox] erwartet (mise sucht fnox erst in project tools, dann auf PATH)
 fnox = "latest"
+# apiops-cli braucht Node >= 22; mise installiert on-demand (MISE_DATA_DIR persistent im Pod)
+node = "22"
 
 # Nicht-vertrauliche Identifikatoren (keine Secrets — in jedem Token enthalten):
 [env]
 AZURE_CLIENT_ID = "bf29e298-2db6-47e4-9c8a-e101b139cd19"
 AZURE_TENANT_ID = "6e069cd6-8fb1-4eb7-a7c6-8d6a50b603f3"
+# Platform-Gateway (Sub TBIT Training):
+AZURE_SUBSCRIPTION_ID = "5cef6e78-e33e-4ceb-855e-5d85f4debdd4"
+PLATFORM_RG = "tbi-rg-exam-ai-103-platform"
+PLATFORM_LOCATION = "swedencentral"
+PLATFORM_APIM = "tbi-apim-exam-ai-103"
+PLATFORM_KV = "tbi-kv-ai103plat"
+PLATFORM_APPGW_HOST = "api.maikteske.dev"
+PLATFORM_APPGW_FQDN = "tbi-agw-exam-ai-103.swedencentral.cloudapp.azure.com"
+PLATFORM_CERT_EMAIL = "maik.teske@googlemail.com"
 
 # Secrets-Quelle fnox: Werte kommen aus fnox.toml (azure-kms verschluesselt),
 # werden nur an Tasks weitergegeben, die sie via secrets = [...] anfordern (mit Redaction).
@@ -30,3 +41,111 @@ run = "az deployment group what-if -g \"${AZURE_DEPLOY_RG:-tbi-rg-exam-ai-103-mt
 [tasks.deploy]
 description = "Foundry-Bicep anwenden: Model-Deployments am bestehenden Account"
 run = "az deployment group create -g \"${AZURE_DEPLOY_RG:-tbi-rg-exam-ai-103-mte}\" -f infra/main.bicep --query properties.outputs -o json"
+
+# ─── Platform-API-Gateway (Admin-Konto, AZURE_CONFIG_DIR=~/.azure-adm) ───────────────────
+# Reihenfolge: bootstrap (ohne AppGW) -> cert:issue -> cert:import -> deploy (voll) -> lockdown
+
+[tasks.'platform:whatif']
+description = "Platform-Bicep: What-if (voll inkl. AppGW)"
+run = '''
+set -e
+export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
+az deployment group what-if -g "$PLATFORM_RG" --subscription "$AZURE_SUBSCRIPTION_ID" \
+  -f infra/platform.bicep -p infra/platform.bicepparam
+'''
+
+[tasks.'platform:bootstrap']
+description = "Platform-Bicep OHNE AppGW (RG+VNet+APIM+PE+KV+RBAC, public=Enabled); Vorbereitung fuer cert:issue"
+run = '''
+set -e
+export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
+az group create -n "$PLATFORM_RG" -l "$PLATFORM_LOCATION" -o none
+az deployment group create -g "$PLATFORM_RG" --subscription "$AZURE_SUBSCRIPTION_ID" \
+  -f infra/platform.bicep -p infra/platform.bicepparam \
+  --parameters deployAppGw=false apimPublicNetworkAccess=Enabled \
+  --query properties.outputs -o json
+'''
+
+[tasks.'platform:deploy']
+description = "Platform-Bicep voll (inkl. AppGW, erwartet KV-Zertifikat appgw-tls)"
+run = '''
+set -e
+export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
+az deployment group create -g "$PLATFORM_RG" --subscription "$AZURE_SUBSCRIPTION_ID" \
+  -f infra/platform.bicep -p infra/platform.bicepparam \
+  --parameters deployAppGw=true apimPublicNetworkAccess=Enabled \
+  --query properties.outputs -o json
+'''
+
+[tasks.'platform:lockdown']
+description = "Platform-Bicep mit publicNetworkAccess=Disabled (PE wird exklusiver Inbound)"
+run = '''
+set -e
+export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
+az deployment group create -g "$PLATFORM_RG" --subscription "$AZURE_SUBSCRIPTION_ID" \
+  -f infra/platform.bicep -p infra/platform.bicepparam \
+  --parameters deployAppGw=true apimPublicNetworkAccess=Disabled \
+  --query properties.outputs -o json
+'''
+
+# ─── TLS-Zertifikat: Let's Encrypt DNS-01 via Cloudflare-API (scoped Token, fnox) ────────
+
+[tasks.'cert:issue']
+description = "LE-Zertifikat fuer api.maikteske.dev via DNS-01 (acme.sh + Cloudflare-API-Token)"
+secrets = ["CLOUDFLARE_API_TOKEN"]
+run = '''
+set -e
+mkdir -p .acme certs
+if [ ! -x .acme/acme.sh ]; then
+  git clone --depth 1 https://github.com/acmesh-official/acme.sh.git .acme
+fi
+export CF_Token="$CLOUDFLARE_API_TOKEN"
+.acme/acme.sh --register-account -m "$PLATFORM_CERT_EMAIL" --server letsencrypt >/dev/null 2>&1 || true
+.acme/acme.sh --issue --dns dns_cf -d "$PLATFORM_APPGW_HOST" --server letsencrypt --keylength ec-256
+'''
+
+[tasks.'cert:import']
+description = "PFX aus acme.sh-Output bauen und nach Key Vault tbi-kv-ai103plat importieren"
+run = '''
+set -e
+export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
+CERT_DIR=".acme/${PLATFORM_APPGW_HOST}_ecc"
+PFX_PASS=$(openssl rand -base64 24)
+export PFX_PASS
+openssl pkcs12 -export \
+  -out "certs/${PLATFORM_APPGW_HOST}.pfx" \
+  -inkey "${CERT_DIR}/${PLATFORM_APPGW_HOST}.key" \
+  -in "${CERT_DIR}/fullchain.cer" \
+  -certfile "${CERT_DIR}/ca.cer" \
+  -passout env:PFX_PASS
+az keyvault certificate import --vault-name "$PLATFORM_KV" --name appgw-tls \
+  --file "certs/${PLATFORM_APPGW_HOST}.pfx" -o json --query name
+rm -f "certs/${PLATFORM_APPGW_HOST}.pfx"
+'''
+
+[tasks.'cert:renew']
+description = "LE-Renewal (nur wenn faellig) + KV-Import; fuer Homelab-Cron geeignet"
+secrets = ["CLOUDFLARE_API_TOKEN"]
+run = '''
+set -e
+export CF_Token="$CLOUDFLARE_API_TOKEN"
+.acme/acme.sh --issue --dns dns_cf -d "$PLATFORM_APPGW_HOST" --server letsencrypt --keylength ec-256
+mise run cert:import
+'''
+
+# ─── APIM-Content via apiops-cli (SP-Creds via fnox, DefaultAzureCredential) ─────────────
+
+[tasks.'apim:extract']
+description = "apiops: APIM-Konfiguration nach apim-artifacts/ extrahieren"
+secrets = ["AZURE_CLIENT_SECRET"]
+run = "npx -y @peterhauge/apiops-cli extract --resource-group \"$PLATFORM_RG\" --service-name \"$PLATFORM_APIM\" --output ./apim-artifacts"
+
+[tasks.'apim:publish:dryrun']
+description = "apiops: Publish-Trockenlauf der apim-artifacts/ gegen APIM"
+secrets = ["AZURE_CLIENT_SECRET"]
+run = "npx -y @peterhauge/apiops-cli publish --resource-group \"$PLATFORM_RG\" --service-name \"$PLATFORM_APIM\" --source ./apim-artifacts --dry-run"
+
+[tasks.'apim:publish']
+description = "apiops: apim-artifacts/ nach APIM publishen"
+secrets = ["AZURE_CLIENT_SECRET"]
+run = "npx -y @peterhauge/apiops-cli publish --resource-group \"$PLATFORM_RG\" --service-name \"$PLATFORM_APIM\" --source ./apim-artifacts"
