@@ -23,6 +23,8 @@ PLATFORM_KV = "tbi-kv-ai103plat"
 PLATFORM_APPGW_HOST = "api.maikteske.dev"
 PLATFORM_APPGW_FQDN = "tbi-agw-exam-ai-103.swedencentral.cloudapp.azure.com"
 PLATFORM_CERT_EMAIL = "maik.teske@googlemail.com"
+# RSA (2048): KV-PFX-Import (und AppGW-Listener) sind mit ECDSA-PFX fragil
+PLATFORM_CERT_KEYLENGTH = "2048"
 
 # Secrets-Quelle fnox: Werte kommen aus fnox.toml (azure-kms verschluesselt),
 # werden nur an Tasks weitergegeben, die sie via secrets = [...] anfordern (mit Redaction).
@@ -101,7 +103,7 @@ if [ ! -x .acme/acme.sh ]; then
 fi
 export CF_Token="$CLOUDFLARE_API_TOKEN"
 .acme/acme.sh --register-account -m "$PLATFORM_CERT_EMAIL" --server letsencrypt >/dev/null 2>&1 || true
-.acme/acme.sh --issue --dns dns_cf -d "$PLATFORM_APPGW_HOST" --server letsencrypt --keylength ec-256
+.acme/acme.sh --issue --dns dns_cf -d "$PLATFORM_APPGW_HOST" --server letsencrypt --keylength "$PLATFORM_CERT_KEYLENGTH"
 '''
 
 [tasks.'cert:import']
@@ -109,10 +111,17 @@ description = "PFX aus acme.sh-Output bauen und nach Key Vault tbi-kv-ai103plat 
 run = '''
 set -e
 export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
-CERT_DIR=".acme/${PLATFORM_APPGW_HOST}_ecc"
-PFX_PASS=$(openssl rand -base64 24)
+# acme.sh legt Zertifikate unter $LE_WORKING_DIR (default ~/.acme.sh) ab;
+# RSA-Default (2048) -> <host>, EC -> <host>_ecc
+CERT_DIR="${LE_WORKING_DIR:-$HOME/.acme.sh}/${PLATFORM_APPGW_HOST}"
+case "$PLATFORM_CERT_KEYLENGTH" in
+  ec-*) CERT_DIR="${CERT_DIR}_ecc" ;;
+esac
+PFX_PASS=$(/usr/bin/openssl rand -base64 24)
 export PFX_PASS
-openssl pkcs12 -export \
+# WICHTIG: /usr/bin/openssl (LibreSSL) statt Homebrew-OpenSSL 4.x -
+# dessen PKCS12-Output kann der KV-.NET-Parser nicht lesen (BadParameter)
+/usr/bin/openssl pkcs12 -export \
   -out "certs/${PLATFORM_APPGW_HOST}.pfx" \
   -inkey "${CERT_DIR}/${PLATFORM_APPGW_HOST}.key" \
   -in "${CERT_DIR}/fullchain.cer" \
@@ -129,7 +138,7 @@ secrets = ["CLOUDFLARE_API_TOKEN"]
 run = '''
 set -e
 export CF_Token="$CLOUDFLARE_API_TOKEN"
-.acme/acme.sh --issue --dns dns_cf -d "$PLATFORM_APPGW_HOST" --server letsencrypt --keylength ec-256
+.acme/acme.sh --issue --dns dns_cf -d "$PLATFORM_APPGW_HOST" --server letsencrypt --keylength "$PLATFORM_CERT_KEYLENGTH"
 mise run cert:import
 '''
 
