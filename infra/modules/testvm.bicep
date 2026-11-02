@@ -125,5 +125,6 @@ resource vm 'Microsoft.Compute/virtualMachines@2024-07-01' = if (deployTestVm) {
   }
 }
 
-output testVmPublicIp string = deployTestVm ? pip.properties.ipAddress : ''
-output testVmPrivateIp string = deployTestVm ? nic.properties.ipConfigurations[0].properties.privateIPAddress : ''
+// Non-Null-Assertion ok: Zugriff nur bei deployTestVm, dann existieren pip/nic
+output testVmPublicIp string = deployTestVm ? pip!.properties.ipAddress : ''
+output testVmPrivateIp string = deployTestVm ? nic!.properties.ipConfigurations[0].properties.privateIPAddress : ''

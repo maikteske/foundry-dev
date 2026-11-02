@@ -127,7 +127,8 @@ resource appGw 'Microsoft.Network/applicationGateways@2024-05-01' = {
           protocol: 'Https'
           cookieBasedAffinity: 'Disabled'
           requestTimeout: 120
-          hostNameFromBackendAddress: true
+          // Host-Header + SNI aus dem Backend-FQDN (<apim>.azure-api.net)
+          pickHostNameFromBackendAddress: true
           probe: {
             id: resourceId('Microsoft.Network/applicationGateways/probes', appGwName, probeName)
           }
