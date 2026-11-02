@@ -1,0 +1,35 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/apis/fabric-graphql",
+  "type": "Microsoft.ApiManagement/service/apis",
+  "name": "fabric-graphql",
+  "properties": {
+    "displayName": "Fabric GraphQL (ALB_test_GraphQL)",
+    "apiRevision": "1",
+    "description": "Fabric GraphQL API execute endpoint (APIM Managed Identity)",
+    "subscriptionRequired": true,
+    "serviceUrl": "https://api.fabric.microsoft.com/v1/workspaces/4c5f30f5-a10f-4886-9972-cfd4b63a6f83/graphqlapis/8857282e-4a3c-4c9b-b821-f1ba31f95f57/execute",
+    "backendId": null,
+    "path": "fabric",
+    "protocols": [
+      "https"
+    ],
+    "mcpProperties": null,
+    "a2aProperties": null,
+    "isAgent": false,
+    "agent": null,
+    "jsonRpcProperties": null,
+    "authenticationSettings": {
+      "oAuth2": null,
+      "openid": null,
+      "oAuth2AuthenticationSettings": [],
+      "openidAuthenticationSettings": []
+    },
+    "subscriptionKeyParameterNames": {
+      "header": "Ocp-Apim-Subscription-Key",
+      "query": "subscription-key",
+      "bearer": null
+    },
+    "isCurrent": true,
+    "effectivePath": null
+  }
+}

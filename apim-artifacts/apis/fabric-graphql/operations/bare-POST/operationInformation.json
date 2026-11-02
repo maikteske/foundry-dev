@@ -1,0 +1,15 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/apis/fabric-graphql/operations/bare-POST",
+  "type": "Microsoft.ApiManagement/service/apis/operations",
+  "name": "bare-POST",
+  "properties": {
+    "displayName": "Bare POST",
+    "method": "POST",
+    "urlTemplate": "/",
+    "templateParameters": [],
+    "description": null,
+    "responses": [],
+    "policies": null,
+    "effectivePath": null
+  }
+}

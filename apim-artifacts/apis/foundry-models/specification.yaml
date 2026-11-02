@@ -1,0 +1,59 @@
+openapi: 3.0.1
+info:
+  title: Foundry Models (Azure OpenAI)
+  description: Azure OpenAI inference via AI Foundry account (APIM Managed Identity)
+  version: '1.0'
+servers:
+  - url: https://tbi-apim-exam-ai-103.azure-api.net/foundry
+paths:
+  '/{*path}':
+    post:
+      summary: CatchAll POST
+      operationId: catchall-POST
+      parameters:
+        - name: '*path'
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+    get:
+      summary: CatchAll GET
+      operationId: catchall-GET
+      parameters:
+        - name: '*path'
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+  /:
+    post:
+      summary: Bare POST
+      operationId: bare-POST
+      responses:
+        '200':
+          description: ''
+    get:
+      summary: Bare GET
+      operationId: bare-GET
+      responses:
+        '200':
+          description: ''
+components:
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      name: Ocp-Apim-Subscription-Key
+      in: header
+    apiKeyQuery:
+      type: apiKey
+      name: subscription-key
+      in: query
+security:
+  - apiKeyHeader: [ ]
+  - apiKeyQuery: [ ]

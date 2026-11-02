@@ -1,0 +1,19 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/products/platform-apis",
+  "type": "Microsoft.ApiManagement/service/products",
+  "name": "platform-apis",
+  "properties": {
+    "displayName": "Platform APIs",
+    "description": "Foundry + Fabric APIs via private gateway (api.maikteske.dev)",
+    "terms": null,
+    "subscriptionRequired": true,
+    "approvalRequired": false,
+    "subscriptionsLimit": null,
+    "state": "published",
+    "groups": [],
+    "authenticationType": [
+      "subscription-key"
+    ],
+    "application": null
+  }
+}

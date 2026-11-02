@@ -1,0 +1,18 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/subscriptions/smoke",
+  "type": "Microsoft.ApiManagement/service/subscriptions",
+  "name": "smoke",
+  "properties": {
+    "ownerId": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/users/1",
+    "scope": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/products/platform-apis",
+    "displayName": "smoke-test",
+    "state": "active",
+    "createdDate": "2026-11-02T18:08:13.777Z",
+    "startDate": "2026-11-02T00:00:00Z",
+    "expirationDate": null,
+    "endDate": null,
+    "notificationDate": null,
+    "stateComment": null,
+    "allowTracing": false
+  }
+}

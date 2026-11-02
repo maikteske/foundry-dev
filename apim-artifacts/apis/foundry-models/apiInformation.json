@@ -1,0 +1,35 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/apis/foundry-models",
+  "type": "Microsoft.ApiManagement/service/apis",
+  "name": "foundry-models",
+  "properties": {
+    "displayName": "Foundry Models (Azure OpenAI)",
+    "apiRevision": "1",
+    "description": "Azure OpenAI inference via AI Foundry account (APIM Managed Identity)",
+    "subscriptionRequired": true,
+    "serviceUrl": "https://tbit-training-ai-103-pr-resource.openai.azure.com",
+    "backendId": null,
+    "path": "foundry",
+    "protocols": [
+      "https"
+    ],
+    "mcpProperties": null,
+    "a2aProperties": null,
+    "isAgent": false,
+    "agent": null,
+    "jsonRpcProperties": null,
+    "authenticationSettings": {
+      "oAuth2": null,
+      "openid": null,
+      "oAuth2AuthenticationSettings": [],
+      "openidAuthenticationSettings": []
+    },
+    "subscriptionKeyParameterNames": {
+      "header": "Ocp-Apim-Subscription-Key",
+      "query": "subscription-key",
+      "bearer": null
+    },
+    "isCurrent": true,
+    "effectivePath": null
+  }
+}
