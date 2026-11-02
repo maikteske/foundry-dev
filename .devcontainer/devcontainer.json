@@ -6,6 +6,7 @@
     "ghcr.io/devcontainers/features/azure-cli:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
+  "postStartCommand": "grep -qs azure-sp.env /root/.bashrc || printf '\\n# Foundry SP-Bootstrap (fnox/KV)\n. /workspaces/.secrets/azure-sp.env\nalias fnox=/workspaces/bin/fnox\n' >> /root/.bashrc",
   "customizations": {
     "vscode": {
       "extensions": [
