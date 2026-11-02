@@ -14,9 +14,9 @@ param appgwHostname = 'api.maikteske.dev'
 
 param deployTestVm = false
 
-// Objekt-ID des Admin-Logins (~/.azure-adm) fuer KV-Zertifikat-Importe.
-// Ermittlung: az ad signed-in-user show --query id -o tsv (mit AZURE_CONFIG_DIR=~/.azure-adm)
-param kvAdminObjectId = ''
+// Objekt-ID des Admin-Logins (~/.azure-adm) fuer KV-Zertifikat-Importe:
+// adm-mteske@teambusinessit.de (via Activity-Log-Claims verifiziert)
+param kvAdminObjectId = '723948da-3488-497b-a477-a5c5a5ae18c0'
 
 param publisherEmail = 'maik.teske@googlemail.com'
 param publisherName = 'Maik Teske'

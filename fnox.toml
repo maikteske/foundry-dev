@@ -32,6 +32,7 @@ env_var = "FOUNDRY_TOKEN"
 
 [secrets]
 AZURE_CLIENT_SECRET= { provider = "azure-kms", value = "n3FT4Th/48vz4x/oVzcJmyS4WfFonjCPMNUVZP7+uan99NXg/chpioEP7VgADUk1fAyHS2Vth6pnzd1iPzv6V1J4AKTk0m3EYVzO6UsxF8hunHSKUcrulVp++UYb3DoM+cqXgT+OB4uO5m6GW792sWbJGxRNKYVXjUB7EYBXcc5IXRS4j5MTWJsSa+xu5HdOWknwigYyDTkr6ZVwXgs6fQjYGrT87baFjw3RXuznCT/NU1jTdEmDbq0ErR6ZO8ZNzKMIvKpimoHOmoEE6rdBj1c94n4gHuZ+i13rQ/Wc/KLQu9Azq2I/ad//XYgdlIkwNLptq8OkGyzrpjvSfj/RFQ==", description = "Client Secret des SP tbi-training-sp-ai-103-mte (KV-verschluesselt, Rotation: az ad app credential reset)" }
+CLOUDFLARE_API_TOKEN= { provider = "azure-kms", value = "hWV4gi1grvJReqFmkRKSFWxBW9dk15qA1AKr3jap76ISv6BLsrxPklboWbGliOwSX9fiIauhEp8et5yK7EUj46ixThpvmn8Un6+dtqunWNfmNOugRDWtA7t9w37PO4/7fbUIsazPOgr2DOumhEOByQT91uDdZaafNWSSePDdcf35Av+MktdF4OYNDh2EgdnTHV0+x/6YSctE1khQlY5wI3mhxuJhNOcG3C20NJGgKVCUCLtK9dNyBEbJwdzOxBzHhcUnfb2YhhKHhBzQktnKyHYYY90g/Edu6dod1y6Ou5GN3mUsv2BoovS9y5kfyvEmEf7g2IOqM4syVYNSHfJk3Q==" }
 
 # Management-API (ARM) für az-Rest/CLI-freie Admin-Zugriffe:
 [leases.azure-arm]

@@ -138,14 +138,14 @@ mise run cert:import
 [tasks.'apim:extract']
 description = "apiops: APIM-Konfiguration nach apim-artifacts/ extrahieren"
 secrets = ["AZURE_CLIENT_SECRET"]
-run = "npx -y @peterhauge/apiops-cli extract --resource-group \"$PLATFORM_RG\" --service-name \"$PLATFORM_APIM\" --output ./apim-artifacts"
+run = "npx -y @azure-tools/apiops-cli extract --resource-group \"$PLATFORM_RG\" --service-name \"$PLATFORM_APIM\" --output ./apim-artifacts"
 
 [tasks.'apim:publish:dryrun']
 description = "apiops: Publish-Trockenlauf der apim-artifacts/ gegen APIM"
 secrets = ["AZURE_CLIENT_SECRET"]
-run = "npx -y @peterhauge/apiops-cli publish --resource-group \"$PLATFORM_RG\" --service-name \"$PLATFORM_APIM\" --source ./apim-artifacts --dry-run"
+run = "npx -y @azure-tools/apiops-cli publish --resource-group \"$PLATFORM_RG\" --service-name \"$PLATFORM_APIM\" --source ./apim-artifacts --dry-run"
 
 [tasks.'apim:publish']
 description = "apiops: apim-artifacts/ nach APIM publishen"
 secrets = ["AZURE_CLIENT_SECRET"]
-run = "npx -y @peterhauge/apiops-cli publish --resource-group \"$PLATFORM_RG\" --service-name \"$PLATFORM_APIM\" --source ./apim-artifacts"
+run = "npx -y @azure-tools/apiops-cli publish --resource-group \"$PLATFORM_RG\" --service-name \"$PLATFORM_APIM\" --source ./apim-artifacts"
