@@ -1,0 +1,17 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/subscriptions/master",
+  "type": "Microsoft.ApiManagement/service/subscriptions",
+  "name": "master",
+  "properties": {
+    "scope": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/",
+    "displayName": "Built-in all-access subscription",
+    "state": "active",
+    "createdDate": "2026-11-02T17:02:50.157Z",
+    "startDate": null,
+    "expirationDate": null,
+    "endDate": null,
+    "notificationDate": null,
+    "stateComment": null,
+    "allowTracing": false
+  }
+}

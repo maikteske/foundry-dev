@@ -1,0 +1,12 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/groups/guests",
+  "type": "Microsoft.ApiManagement/service/groups",
+  "name": "guests",
+  "properties": {
+    "displayName": "Guests",
+    "description": "Guests is a built-in group. Its membership is managed by the system. Unauthenticated users visiting the developer portal fall into this group.",
+    "builtIn": true,
+    "type": "system",
+    "externalId": null
+  }
+}

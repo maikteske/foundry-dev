@@ -1,0 +1,12 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/groups/developers",
+  "type": "Microsoft.ApiManagement/service/groups",
+  "name": "developers",
+  "properties": {
+    "displayName": "Developers",
+    "description": "Developers is a built-in group. Its membership is managed by the system. Signed-in users fall into this group.",
+    "builtIn": true,
+    "type": "system",
+    "externalId": null
+  }
+}

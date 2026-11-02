@@ -1,0 +1,12 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/groups/administrators",
+  "type": "Microsoft.ApiManagement/service/groups",
+  "name": "administrators",
+  "properties": {
+    "displayName": "Administrators",
+    "description": "Administrators is a built-in group containing the admin email account provided at the time of service creation. Its membership is managed by the system.",
+    "builtIn": true,
+    "type": "system",
+    "externalId": null
+  }
+}

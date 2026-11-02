@@ -1,0 +1,48 @@
+{
+  "id": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/diagnostics/azuremonitor",
+  "type": "Microsoft.ApiManagement/service/diagnostics",
+  "name": "azuremonitor",
+  "properties": {
+    "alwaysLog": null,
+    "logClientIp": true,
+    "loggerId": "/subscriptions/5cef6e78-e33e-4ceb-855e-5d85f4debdd4/resourceGroups/tbi-rg-exam-ai-103-platform/providers/Microsoft.ApiManagement/service/tbi-apim-exam-ai-103/loggers/azuremonitor",
+    "sampling": {
+      "samplingType": "fixed",
+      "percentage": 100
+    },
+    "frontend": {
+      "request": {
+        "headers": null,
+        "body": null,
+        "dataMasking": {
+          "queryParams": [
+            {
+              "value": "*",
+              "mode": "Hide"
+            }
+          ]
+        }
+      },
+      "response": null
+    },
+    "backend": {
+      "request": {
+        "headers": null,
+        "body": null,
+        "dataMasking": {
+          "queryParams": [
+            {
+              "value": "*",
+              "mode": "Hide"
+            }
+          ]
+        }
+      },
+      "response": null
+    },
+    "largeLanguageModel": null,
+    "mcp": null,
+    "a2a": null,
+    "tags": null
+  }
+}
