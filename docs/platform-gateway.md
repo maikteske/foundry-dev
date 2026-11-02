@@ -71,12 +71,14 @@ mise run apim:publish
 Fabric-Backend: **nicht** die kopierte Public-URL der GraphQL-API verwenden (die nimmt nur User-Tokens), sondern den SP/MI-Endpunkt:
 
 ```
-https://api.fabric.microsoft.com/v1/workspaces/4c5f30f5-a10f-4886-9972-cfd4b63a6f83/graphqlapis/8857282e-4a3c-4c9b-b821-f1ba31f95f57/execute
+https://api.fabric.microsoft.com/v1/workspaces/4c5f30f5-a10f-4886-9972-cfd4b63a6f83/graphqlapis/8857282e-4a3c-4c9b-b821-f1ba31f95f57/graphql
 ```
+
+Achtung: Der Pfad endet auf **`/graphql`**, nicht `/execute` — `/execute` liefert nur einen generischen 404 `EntityNotFound` (Fabric-Navigation ist case- und pfad-sensitiv).
 
 Policies je API: `authentication-managed-identity` (resource `https://api.fabric.microsoft.com` bzw. Foundry) + `graphql-max-depth`/`graphql-max-complexity`.
 
-## Smoke-Tests (Stand: deployiert)
+## Smoke-Tests (Stand: beide APIs verifiziert ✅)
 
 PublicGateway: `api.maikteske.dev` (Cloudflare CNAME, DNS-only, LE-Zertifikat aus KV `appgw-tls`).
 Subscription-Key: Product **platform-apis** (Subscription `smoke` in APIM angelegt).
@@ -90,7 +92,7 @@ curl "https://api.maikteske.dev/foundry/openai/deployments/gpt-5-mini/chat/compl
   -H "Ocp-Apim-Subscription-Key: $KEY" -H "Content-Type: application/json" \
   -d '{"messages":[{"role":"user","content":"pong?"}],"max_completion_tokens":32}'
 
-# Fabric GraphQL (execute endpoint, MI-Auth via policy resource api.fabric.microsoft.com):
+# Fabric GraphQL (MI-Auth via policy resource api.fabric.microsoft.com):
 curl "https://api.maikteske.dev/fabric" \
   -H "Ocp-Apim-Subscription-Key: $KEY" -H "Content-Type: application/json" \
   -d '{"query":"query { entities_gold_layers(first: 10) { items { id } } }"}'
@@ -102,7 +104,7 @@ pro Methode eigene Operations (POST/GET × `/{*path}` und `/`) anlegen (siehe ap
 ## Manuelles Zutun (einmalig, Fabric-Tenant) — Status
 
 1. ✅ APIM-System-MI (`tbi-apim-exam-ai-103`, principalId `c897f71c-a17a-4816-97c5-7538567ff8e8`) als **Member** des Fabric-Workspaces `4c5f30f5-a10f-4886-9972-cfd4b63a6f83` (via roleAssignments-API).
-2. ⚠️ Tenant-Setting **„Service principals can call Fabric public APIs"** (`ServicePrincipalAccessPermissionAPIs`) ist enabled, aber auf Security-Groups beschränkt — APIM-MI muss in eine erlaubte Gruppe (z. B. `azu_sub_tbi_fabric_analytics_app_dev`) oder direkt ins Setting (Admin-Portal → Developer settings). API-PATH war readonly (405); Graph durch CAE blockiert.
+2. ✅ Tenant-Setting **„Service principals can call Fabric public APIs"** (`ServicePrincipalAccessPermissionAPIs`): Security-Group `tbi-apim-exam-ai-103` (enthält die APIM-MI `c897f71c-a17a-4816-97c5-7538567ff8e8`) im Admin-Portal hinzugefügt. Write-Endpoints waren readonly (405); Graph durch CAE blockiert — daher nur manuell möglich.
 3. Workspace-Capacity muss laufen (war zeitweise pausiert → Fabric-401).
 
 ## Troubleshooting
