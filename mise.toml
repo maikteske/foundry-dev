@@ -22,3 +22,11 @@ description = "Foundry quickstart: Agent erstellen (Secrets via fnox-Grant, Outp
 dir = "/workspaces/foundry-samples"
 secrets = ["FOUNDRY_TOKEN", "AZURE_CLIENT_SECRET"]
 run = ".venv/bin/python samples/python/quickstart/create-agent/quickstart-create-agent.py"
+
+[tasks.'deploy:whatif']
+description = "Foundry-Bicep: What-if der Model-Deployments (infra/main.bicep)"
+run = "az deployment group what-if -g \"${AZURE_DEPLOY_RG:-tbi-rg-exam-ai-103-mte}\" -f infra/main.bicep"
+
+[tasks.deploy]
+description = "Foundry-Bicep anwenden: Model-Deployments am bestehenden Account"
+run = "az deployment group create -g \"${AZURE_DEPLOY_RG:-tbi-rg-exam-ai-103-mte}\" -f infra/main.bicep --query properties.outputs -o json"
