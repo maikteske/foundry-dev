@@ -25,6 +25,7 @@ var apimNsgName = '${vnetName}-snet-apim-out-nsg'
 // Explizite Outbound-Erlaubnis fuer Azure Key Vault (APIM-Abhaengigkeit).
 resource apimNsg 'Microsoft.Network/networkSecurityGroups@2024-05-01' = {
   name: apimNsgName
+  location: resourceGroup().location
   properties: {
     securityRules: [
       {

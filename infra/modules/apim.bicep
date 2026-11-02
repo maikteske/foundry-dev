@@ -36,6 +36,10 @@ resource apim 'Microsoft.ApiManagement/service@2024-05-01' = {
     publisherEmail: publisherEmail
     publisherName: publisherName
     publicNetworkAccess: publicNetworkAccess
+    // Pflicht, sobald virtualNetworkConfiguration gesetzt ist. StandardV2
+    // unterstuetzt nur 'External' (nicht Internal); Subnet ist delegiert an
+    // Microsoft.Web/serverFarms (vgl. Azure-Samples/AI-Gateway foundry-e2e-private)
+    virtualNetworkType: 'External'
     virtualNetworkConfiguration: {
       subnetResourceId: apimOutSubnetId
     }

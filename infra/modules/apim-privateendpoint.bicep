@@ -43,10 +43,11 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = {
   }
 }
 
-// Registrierter FQDN ist deterministisch: <apim>.privatelink.azure-api.net
-// (Name des A-Records muss zur Deploy-Zeit berechenbar sein, die PE-IP nicht)
-var registeredFqdn = '${apimName}.privatelink.${dnsZoneName}'
-var aRecordName = '${apimName}.privatelink'
+// Registrierter FQDN ist deterministisch: <apim>.privatelink.azure-api.net,
+// also A-Record mit relativen Namen <apim> in der Zone privatelink.azure-api.net
+// (Name muss zur Deploy-Zeit berechenbar sein, die PE-IP nicht)
+var registeredFqdn = '${apimName}.${dnsZoneName}'
+var aRecordName = apimName
 var peIp = privateEndpoint.properties.customDnsConfigs[0].ipAddresses[0]
 
 resource dnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
