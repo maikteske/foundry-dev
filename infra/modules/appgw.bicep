@@ -66,7 +66,8 @@ resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPo
       state: 'Enabled'
       mode: 'Prevention'
       requestBodyCheck: true
-      maxRequestBodySizeInKb: 128
+      // Max. erlaubter Wert (2 MB) - Daten-/GraphQL-APIs mit groesseren Bodies
+      maxRequestBodySizeInKb: 2000
     }
     managedRules: {
       managedRuleSets: [
