@@ -21,6 +21,8 @@ SP-Session (MSAL-Cache in /root/.azure, ephemeral — je Boot neu)
   └─ Quickstart/Samples: DefaultAzureCredential → AzureCliCredential
 ```
 
+Hinweis: fnox kann den Decrypt in manchen Kontexten auch direkt über die injizierten Env-Vars (`EnvironmentCredential`) auflösen — der az-Login ist trotzdem die verlässliche Basis für `az`-CLI und DefaultAzureCredential.
+
 Aufteilung der Variablen:
 
 | Variable | Quelle | Warum |
@@ -34,7 +36,7 @@ Datei-/Storage-Orte:
 - `~/.azure` (MSAL-Cache) — ephemeral, je Boot neu per SP-Login
 - `/workspaces/.mise` — mise-Tool-Installs (PVC, persistent)
 - `/workspaces/.fnox-state` — Lease-Ledger (PVC, persistent)
-- `/workspaces/.vscode-extensions` — persistenter VS Code-Extensions-Ordner (PVC), via Symlink aus postStartCommand
+- `/workspaces/.vscode-extensions` — persistenter VS Code-Extensions-Ordner (PVC); per postStartCommand in **beide** Extension-Pfade gesymlinkt: `~/.local/share/code-server/extensions` (Web-IDE/code-server) und `~/.vscode-server/extensions` (Desktop-Remote-Fall)
 
 ### Rotation
 
@@ -51,21 +53,25 @@ printf %s "$AZURE_CLIENT_SECRET" | coder secret update azure-client-secret   # W
 - Coder speichert Secret-Werte in der coderd-DB; verschlüsselt at rest nur mit aktivierter DB-Encryption.
 - Wer Shell-Zugriff auf den Workspace hat, kann die injizierten Env-Werte lesen (wie bei jeder Injektion).
 - `postStartCommand` läuft als Kind von envbuilder, nicht des Coder-Agenten → sieht User-Secret-Env **nicht**. Der az-Login lebt deshalb im `.bashrc`-Block (Agent-Kontext) mit Guard, sodass er einmal pro Boot beim ersten Terminal läuft.
+- fnox-Lease-Cache-Warnung `Failed to encrypt credentials for caching: Azure Key Vault: API error: 400 …, skipping cache` ist unkritisch — der Lease läuft ohne Cache und wird je Nutzung neu geholt.
 
 ## VS Code Extensions (web)
 
-Coder Web-VS Code installiert `customizations.vscode.extensions` aus der devcontainer.json **nicht automatisch**. Ge_setzt_ wird ein persistenter Extensions-Ordner (`postStartCommand`-Symlink auf das PVC), damit Installationen Restarts überleben. Einmalig bzw. nach Bedarf im integrierten Terminal:
+Die Web-IDE ist **code-server** (Coder vscode-web-Modul, läuft aus `/tmp/code-server`). Sie liest Extensions aus `~/.local/share/code-server/extensions` — das Verzeichnis ist ephemeral und wird per postStartCommand auf den PVC-Ordner `/workspaces/.vscode-extensions` gesymlinkt, damit Installationen Restarts überleben. `customizations.vscode.extensions` aus der devcontainer.json gilt nur für Desktop-Flows, nicht für die Web-IDE.
+
+Installiert (Stand 2026-11-02, überleben Restarts): `hverlin.mise-vscode`, `ms-azuretools.vscode-bicep` (+ `ms-dotnettools.vscode-dotnet-runtime` als Dependency) sowie die Azure-Standard-Extensions.
+
+Nachinstallieren — Marketplace-Hinweis: code-server nutzt **Open VSX**; die ms-azuretools-Extensions sind dort **nicht** veröffentlicht (nur im Microsoft Marketplace). mise-vscode kommt aus Open VSX, bicep als .vsix aus dem MS-Marketplace:
 
 ```sh
-code --install-extension hverlin.mise-vscode ms-azuretools.vscode-bicep
+CS=/tmp/coder-script-data/bin/code-server
+"$CS" --extensions-dir /workspaces/.vscode-extensions --install-extension hverlin.mise-vscode
+curl -sL --compressed -o /tmp/bicep.vsix \
+  "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-azuretools/vsextensions/vscode-bicep/0.48.1/vspackage"
+"$CS" --extensions-dir /workspaces/.vscode-extensions --install-extension /tmp/bicep.vsix
 ```
 
-Alternativ headless über die Server-CLI (nach dem ersten VS-Code-Connect):
-
-```sh
-"$(ls -d ~/.vscode-server/cli/servers/*/server | head -1)/bin/code-server" \
-  --install-extension ms-azuretools.vscode-bicep
-```
+Danach das Browser-Fenster der Web-IDE neu laden (die laufende Instanz cached die Extension-Liste). Version im bicep-URL ggf. anpassen.
 
 `az bicep install` läuft im postStartCommand, damit `az bicep build/decompile` sofort nutzbar ist.
 
