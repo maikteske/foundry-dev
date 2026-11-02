@@ -59,7 +59,7 @@ printf %s "$AZURE_CLIENT_SECRET" | coder secret update azure-client-secret   # W
 
 Die Web-IDE ist **code-server** (Coder vscode-web-Modul, läuft aus `/tmp/code-server`). Sie liest Extensions aus `~/.local/share/code-server/extensions` — das Verzeichnis ist ephemeral und wird per postStartCommand auf den PVC-Ordner `/workspaces/.vscode-extensions` gesymlinkt, damit Installationen Restarts überleben. `customizations.vscode.extensions` aus der devcontainer.json gilt nur für Desktop-Flows, nicht für die Web-IDE.
 
-Installiert (Stand 2026-11-02, überleben Restarts): `hverlin.mise-vscode`, `ms-azuretools.vscode-bicep` (+ `ms-dotnettools.vscode-dotnet-runtime` als Dependency) sowie die Azure-Standard-Extensions.
+Installiert (Stand 2026-11-02, überleben Restarts): `hverlin.mise-vscode`, `ms-azuretools.vscode-bicep` (+ `ms-dotnettools.vscode-dotnet-runtime` als Dependency), `ms-python.python` sowie die Azure-Standard-Extensions.
 
 Nachinstallieren — Marketplace-Hinweis: code-server nutzt **Open VSX**; die ms-azuretools-Extensions sind dort **nicht** veröffentlicht (nur im Microsoft Marketplace). mise-vscode kommt aus Open VSX, bicep als .vsix aus dem MS-Marketplace:
 
