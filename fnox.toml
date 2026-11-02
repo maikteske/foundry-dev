@@ -18,9 +18,6 @@
 default_provider = "azure-kms"
 
 # ─── Provider ─────────────────────────────────────────────────────────────────────────────
-[providers.plaintext]
-type = "plain"
-
 [providers.azure-kms]
 type = "azure-kms"
 vault_url = "https://tbi-kv-ai103-mte.vault.azure.net/"
@@ -34,8 +31,6 @@ scope = "https://ai.azure.com/.default"
 env_var = "FOUNDRY_TOKEN"
 
 [secrets]
-AZURE_CLIENT_ID= { provider = "plaintext", value = "bf29e298-2db6-47e4-9c8a-e101b139cd19", description = "Client-ID des Service Principals tbi-training-sp-ai-103-mte" }
-AZURE_TENANT_ID= { provider = "plaintext", value = "6e069cd6-8fb1-4eb7-a7c6-8d6a50b603f3", description = "Tenant Team Beverage AG (teambeverageag.onmicrosoft.com)" }
 AZURE_CLIENT_SECRET= { provider = "azure-kms", value = "n3FT4Th/48vz4x/oVzcJmyS4WfFonjCPMNUVZP7+uan99NXg/chpioEP7VgADUk1fAyHS2Vth6pnzd1iPzv6V1J4AKTk0m3EYVzO6UsxF8hunHSKUcrulVp++UYb3DoM+cqXgT+OB4uO5m6GW792sWbJGxRNKYVXjUB7EYBXcc5IXRS4j5MTWJsSa+xu5HdOWknwigYyDTkr6ZVwXgs6fQjYGrT87baFjw3RXuznCT/NU1jTdEmDbq0ErR6ZO8ZNzKMIvKpimoHOmoEE6rdBj1c94n4gHuZ+i13rQ/Wc/KLQu9Azq2I/ad//XYgdlIkwNLptq8OkGyzrpjvSfj/RFQ==", description = "Client Secret des SP tbi-training-sp-ai-103-mte (KV-verschluesselt, Rotation: az ad app credential reset)" }
 
 # Management-API (ARM) für az-Rest/CLI-freie Admin-Zugriffe:
@@ -45,4 +40,5 @@ scope = "https://management.azure.com/.default"
 env_var = "AZURE_ARM_TOKEN"
 
 # ─── Secrets ─────────────────────────────────────────────────────────────────────────────
-# AZURE_CLIENT_ID / AZURE_CLIENT_SECRET / AZURE_TENANT_ID via `fnox set` befüllen.
+# Nur noch AZURE_CLIENT_SECRET via `fnox set` befüllen.
+# AZURE_CLIENT_ID / AZURE_TENANT_ID sind keine Secrets und liegen in mise.toml [env].

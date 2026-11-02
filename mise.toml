@@ -8,6 +8,11 @@ experimental = true
 # fnox >= 1.43 wird von mises [secrets.fnox] erwartet (mise sucht fnox erst in project tools, dann auf PATH)
 fnox = "latest"
 
+# Nicht-vertrauliche Identifikatoren (keine Secrets — in jedem Token enthalten):
+[env]
+AZURE_CLIENT_ID = "bf29e298-2db6-47e4-9c8a-e101b139cd19"
+AZURE_TENANT_ID = "6e069cd6-8fb1-4eb7-a7c6-8d6a50b603f3"
+
 # Secrets-Quelle fnox: Werte kommen aus fnox.toml (azure-kms verschluesselt),
 # werden nur an Tasks weitergegeben, die sie via secrets = [...] anfordern (mit Redaction).
 [secrets.fnox]
@@ -15,5 +20,5 @@ fnox = "latest"
 [tasks.quickstart]
 description = "Foundry quickstart: Agent erstellen (Secrets via fnox-Grant, Output redactiert)"
 dir = "/workspaces/foundry-samples"
-secrets = ["FOUNDRY_TOKEN", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "AZURE_TENANT_ID"]
+secrets = ["FOUNDRY_TOKEN", "AZURE_CLIENT_SECRET"]
 run = ".venv/bin/python samples/python/quickstart/create-agent/quickstart-create-agent.py"
