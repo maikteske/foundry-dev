@@ -30,16 +30,23 @@ AI Foundry Account               Fabric GraphQL API
 | Admin-Az-Konto (`AZURE_CONFIG_DIR=~/.azure-adm`) | Rechner, auf dem die platform-Tasks laufen |
 | Scoped Cloudflare-API-Token (Zone `maikteske.dev`, DNS:Edit) | `fnox set CLOUDFLARE_API_TOKEN` |
 | SP-Creds für apiops (`AZURE_CLIENT_SECRET`) | fnox (schon vorhanden) |
-| Bicep/az | `az bicep install`, az ≥ 2.5x |
+| Terraform 1.12.2 + az | via mise (`mise.toml`, `mise trust`) — Plattform wird per Terraform verwaltet, siehe `docs/terraform-migration.md` |
 
 ## Deploy-Sequenz (Phase 1 – Plattform)
 
+Die platform-Tasks steuern jetzt Terraform (vorher Bicep): Plan mit `-out=tfplan`,
+Apply nur mit diesem Plan (nie `-auto-approve`). State liegt bis auf Weiteres
+lokal (Remote-Backend-Storage existiert bewusst nicht, siehe
+`docs/terraform-migration.md` → State).
+
 ```sh
-mise run platform:bootstrap   # RG+VNet+APIM+PE+KV+RBAC, ohne AppGW, public=Enabled
+mise run platform:init        # terraform init (Local-State)
+mise run platform:bootstrap   # Plan+Apply: RG+VNet+APIM+PE+KV+RBAC, ohne AppGW, public=Enabled
 mise run cert:issue           # LE via DNS-01 (braucht CLOUDFLARE_API_TOKEN)
 mise run cert:import          # PFX → KV-Zertifikat appgw-tls
 mise run platform:deploy      # voll inkl. AppGW
 mise run platform:lockdown    # APIM public=Disabled (nur noch PE-Inbound)
+mise run deploy:whatif        # nur Plan (-target=module.foundry_models), kein Apply
 ```
 
 Verifikation nach lockdown:
@@ -159,3 +166,4 @@ pro Methode eigene Operations (POST/GET × `/{*path}` und `/`) anlegen (siehe ap
 | 502/5xx direkt nach deploy | KV-Zert fehlt oder PE nicht Approved → Sequenz von oben |
 | cert:issue schlägt fehl | `CLOUDFLARE_API_TOKEN` fehlt in fnox oder Token-Limits zu eng (Zone + DNS:Edit) |
 | apiops löscht APIs | Artefakte sind Source of Truth — nie direkt in APIM clicken, immer extract→edit→publish |
+| `Backend initialization required` bei plan | Backend-Block in `versions.tf` aktiv, aber kein Storage → Block auskommentiert lassen (siehe docs/terraform-migration.md → State) |

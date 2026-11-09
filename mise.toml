@@ -9,6 +9,8 @@ experimental = true
 fnox = "latest"
 # apiops-cli braucht Node >= 22; mise installiert on-demand (MISE_DATA_DIR persistent im Pod)
 node = "22"
+# Terraform-Migration: pins siehe terraform/versions.tf
+terraform = "1.12.2"
 
 # Nicht-vertrauliche Identifikatoren (keine Secrets — in jedem Token enthalten):
 [env]
@@ -36,58 +38,71 @@ dir = "/workspaces/foundry-samples"
 secrets = ["FOUNDRY_TOKEN", "AZURE_CLIENT_SECRET"]
 run = ".venv/bin/python samples/python/quickstart/create-agent/quickstart-create-agent.py"
 
+# ─── Foundry Model-Deployments (Modul foundry_models) ────────────────────────────────
+
 [tasks.'deploy:whatif']
-description = "Foundry-Bicep: What-if der Model-Deployments (infra/main.bicep)"
-run = "az deployment group what-if -g \"${AZURE_DEPLOY_RG:-tbi-rg-exam-ai-103-mte}\" -f infra/main.bicep"
+description = "Terraform-Plan nur fuer Modul foundry_models (Model-Deployments)"
+run = '''
+set -e
+export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
+terraform -chdir=terraform init -input=false -backend=false >/dev/null
+terraform -chdir=terraform plan -input=false -target=module.foundry_models
+'''
 
 [tasks.deploy]
-description = "Foundry-Bicep anwenden: Model-Deployments am bestehenden Account"
-run = "az deployment group create -g \"${AZURE_DEPLOY_RG:-tbi-rg-exam-ai-103-mte}\" -f infra/main.bicep --query properties.outputs -o json"
+description = "Terraform apply nur fuer Modul foundry_models (gespeicherter Plan, kein -auto-approve)"
+run = '''
+set -e
+export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
+terraform -chdir=terraform init -input=false -backend=false >/dev/null
+terraform -chdir=terraform plan -input=false -target=module.foundry_models -out=tfplan && \
+terraform -chdir=terraform apply tfplan && rm -f terraform/tfplan
+'''
 
 # ─── Platform-API-Gateway (Admin-Konto, AZURE_CONFIG_DIR=~/.azure-adm) ───────────────────
 # Reihenfolge: bootstrap (ohne AppGW) -> cert:issue -> cert:import -> deploy (voll) -> lockdown
 
-[tasks.'platform:whatif']
-description = "Platform-Bicep: What-if (voll inkl. AppGW)"
+[tasks.'platform:init']
+description = "Terraform init (lokal, ohne Backend bis backend.hcl beschlossen)"
+run = "terraform -chdir=terraform init -input=false -backend=false"
+
+[tasks.'platform:plan']
+description = "Terraform-Plan (voll inkl. AppGW, Live-Stand: public=Disabled) — ersetzt platform:whatif"
 run = '''
 set -e
 export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
-az deployment group what-if -g "$PLATFORM_RG" --subscription "$AZURE_SUBSCRIPTION_ID" \
-  -f infra/platform.bicep -p infra/platform.bicepparam
+terraform -chdir=terraform init -input=false -backend=false >/dev/null
+terraform -chdir=terraform plan -input=false -out=tfplan
 '''
 
 [tasks.'platform:bootstrap']
-description = "Platform-Bicep OHNE AppGW (RG+VNet+APIM+PE+KV+RBAC, public=Enabled); Vorbereitung fuer cert:issue"
+description = "Terraform apply OHNE AppGW, public=Enabled (Bootstrap-Phase)"
 run = '''
 set -e
 export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
-az group create -n "$PLATFORM_RG" -l "$PLATFORM_LOCATION" -o none
-az deployment group create -g "$PLATFORM_RG" --subscription "$AZURE_SUBSCRIPTION_ID" \
-  -f infra/platform.bicep -p infra/platform.bicepparam \
-  --parameters deployAppGw=false apimPublicNetworkAccess=Enabled \
-  --query properties.outputs -o json
+terraform -chdir=terraform init -input=false -backend=false >/dev/null
+terraform -chdir=terraform plan -input=false -var deploy_appgw=false -var apim_public_network_access=Enabled -out=tfplan && \
+terraform -chdir=terraform apply tfplan && rm -f terraform/tfplan
 '''
 
 [tasks.'platform:deploy']
-description = "Platform-Bicep voll (inkl. AppGW, erwartet KV-Zertifikat appgw-tls)"
+description = "Terraform apply voll (inkl. AppGW, erwartet KV-Zertifikat appgw-tls), public=Enabled"
 run = '''
 set -e
 export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
-az deployment group create -g "$PLATFORM_RG" --subscription "$AZURE_SUBSCRIPTION_ID" \
-  -f infra/platform.bicep -p infra/platform.bicepparam \
-  --parameters deployAppGw=true apimPublicNetworkAccess=Enabled \
-  --query properties.outputs -o json
+terraform -chdir=terraform init -input=false -backend=false >/dev/null
+terraform -chdir=terraform plan -input=false -var deploy_appgw=true -var apim_public_network_access=Enabled -out=tfplan && \
+terraform -chdir=terraform apply tfplan && rm -f terraform/tfplan
 '''
 
 [tasks.'platform:lockdown']
-description = "Platform-Bicep mit publicNetworkAccess=Disabled (PE wird exklusiver Inbound)"
+description = "Terraform apply mit publicNetworkAccess=Disabled (PE exklusiver Inbound)"
 run = '''
 set -e
 export AZURE_CONFIG_DIR="${PLATFORM_AZURE_CONFIG_DIR:-$HOME/.azure-adm}"
-az deployment group create -g "$PLATFORM_RG" --subscription "$AZURE_SUBSCRIPTION_ID" \
-  -f infra/platform.bicep -p infra/platform.bicepparam \
-  --parameters deployAppGw=true apimPublicNetworkAccess=Disabled \
-  --query properties.outputs -o json
+terraform -chdir=terraform init -input=false -backend=false >/dev/null
+terraform -chdir=terraform plan -input=false -var deploy_appgw=true -var apim_public_network_access=Disabled -out=tfplan && \
+terraform -chdir=terraform apply tfplan && rm -f terraform/tfplan
 '''
 
 # ─── TLS-Zertifikat: Let's Encrypt DNS-01 via Cloudflare-API (scoped Token, fnox) ────────
