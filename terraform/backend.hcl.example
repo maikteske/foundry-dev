@@ -1,0 +1,21 @@
+# Vorlage für das azurerm-Remote-Backend (backend "azurerm" {} in versions.tf).
+#
+# ACHTUNG (Migration-Regel): Dieser Storage-Account/Container wurde NICHT
+# angelegt und existiert (noch) nicht. Erst wenn das Backend beschlossen ist:
+#   1. Storage-Account + Container einmalig anlegen (außerhalb dieser Migration),
+#   2. diese Datei nach backend.hcl kopieren und Werte eintragen,
+#   3. terraform init -backend-config=backend.hcl
+#      (Konfig-Import: terraform plan erzeugt State-Datei für den Import,
+#       danach "terraform init -backend-config=backend.hcl" + state push bzw.
+#       einmalig "terraform state push" nach dem ersten apply).
+#
+# Nutzung mit fnox/env: AZURE_STORAGE_ACCOUNT_KEY nie committen — besser
+# azuread_auth = true und Login mit einem Account, der
+# "Storage Blob Data Contributor" + "Storage Account Contributor" am Account ist.
+
+resource_group_name   = "tbi-rg-exam-ai-103-platform" # TODO: Storage-RG festlegen
+storage_account_name  = "TODO" # TODO: Storage-Account-Name (globally unique)
+container_name        = "tfstate"
+key                   = "foundry-dev/platform.tfstate"
+subscription_id       = "5cef6e78-e33e-4ceb-855e-5d85f4debdd4"
+use_azuread_auth      = true
